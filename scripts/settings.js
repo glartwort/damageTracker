@@ -1,5 +1,3 @@
-console.log(MODULE_ID, "- Settings.js is loaded.");
-
 Hooks.once("init", () => {
   game.settings.registerMenu(MODULE_ID, "settingsMenu", {
     name: "Details",
@@ -9,7 +7,6 @@ Hooks.once("init", () => {
     restricted: false
   });
 
-
   game.settings.register(MODULE_ID, "enableNPCTracking", {
     name: "NPC Damage Tracking",
     hint: "Should NPCs show in the list?",
@@ -17,6 +14,15 @@ Hooks.once("init", () => {
     config: true,
     type: Boolean,
     default: true
+  });
+
+  game.settings.register(MODULE_ID, "isDebug", {
+    name: "{Damage Tracker debug logging}",
+    hint: "Should Damage Tracker log to console with debug info?",
+    scope: "client",
+    config: true,
+    type: Boolean,
+    default: false
   });
 
   game.settings.register(MODULE_ID, "clearTracking", {
@@ -36,5 +42,8 @@ Hooks.once("init", () => {
     default: {}
   });
 
-  console.log("## ", MODULE_ID, " settings registered ##");
+
+  isDebug = game.settings.get(MODULE_ID, "isDebug");
+
+  if (isDebug) console.log(MODULE_ID, "|", "settings registered.");
 });
