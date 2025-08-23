@@ -1,10 +1,10 @@
-class DamageTrackSettings extends FormApplication {
+class DamageTrackerSettings extends FormApplication {
   static get defaultOptions() {
     return {
       ...super.defaultOptions,
-      title: "Damage Track Settings",
-      id: "damage-track-settings",
-      template: "modules/damagetrack/templates/settings.hbs",
+      title: "Damage Tracker Settings",
+      id: "damage-tracker-settings",
+      template: "modules/damagetracker/templates/settings.hbs",
       width: 600,
       height: "auto",
       resizable: false
