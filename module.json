@@ -1,0 +1,31 @@
+{
+  "id": "DamageTrack",
+  "title": "Damage Track",
+  "description": "<p>Foundry Virtual Tabletop framework module for tracking biggest hits and cumulative damage done.</p>",
+  "authors": [
+    {
+      "name": "Bludshot",
+      "flags": {}
+    }
+  ],
+  "scripts": [
+    "scripts/damagetrack.js",
+    "scripts/settings.js",
+    "scripts/formapp.js"
+  ],
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "relationships": {
+    "requires": [
+      {
+        "id": "pf2e-toolbelt",
+        "type": "module",
+        "compatibility": {}
+      }
+    ]
+  },
+  "flags": {}
+}
