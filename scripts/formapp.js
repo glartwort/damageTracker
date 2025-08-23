@@ -15,7 +15,10 @@ class DamageTrackerSettings extends FormApplication {
     const dmgMap = game.settings.get(MODULE_ID,"damageMap");
     const sortedActors = Object.values(dmgMap).sort((a,b) => b.totDmg - a.totDmg);
 
-    console.log(sortedActors);
+    if (isDebug) {
+      console.log(MODULE_ID, "|", "DamageTracker Actor list: ");
+      console.log(MODULE_ID, "|", sortedActors);
+    }
 
     return {
       enableNPCTracking: game.settings.get(MODULE_ID, "enableNPCTracking"),
@@ -24,16 +27,14 @@ class DamageTrackerSettings extends FormApplication {
   }
 
   async _updateObject(event, formData) {
-    await game.settings.set(MODULE_ID, "enableNPCTracking", formData.enableNPCTracking);
-
-    console.log("updating settings enableNPCTracking:", enableNPCTracking, " via _updateObject()");
   
     if (formData.clearTracking) {
-      // Optional: clear your actorMap or other tracked data here
       await game.settings.set(MODULE_ID, "damageMap", {});
       ui.notifications.info("Damage tracking data has been cleared.");
     }
   }
+
+  //TODO: Should I add buttons for each "heading" to allow for Sorting by listening to each button and refreshing?
 
   activateListeners(html) {
     super.activateListeners(html);
@@ -47,6 +48,9 @@ class DamageTrackerSettings extends FormApplication {
       if (confirmed) {
         await game.settings.set(MODULE_ID, "damageMap", {});
         ui.notifications.info("Damage tracking data has been cleared.");
+
+        //refresh Settings page since data changed.
+        this.render(true);
       }
     });
 
@@ -60,7 +64,6 @@ class DamageTrackerSettings extends FormApplication {
         const dmgMap = game.settings.get(MODULE_ID,"damageMap");
         
         //filter to only PCs and set damage map to new filtered set.
-        
         const filteredActors = Object.values(dmgMap).filter((a) => !a.isNPC);
 
         const newDmgMap = {};
@@ -77,6 +80,9 @@ class DamageTrackerSettings extends FormApplication {
        
         await game.settings.set(MODULE_ID, "damageMap", newDmgMap);
         ui.notifications.info("Damage tracking data for NPCs has been cleared.");
+
+        //refresh Settings page since data changed.
+        this.render(true);
       }
     });
 
