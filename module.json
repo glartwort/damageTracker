@@ -1,6 +1,6 @@
 {
-  "id": "DamageTrack",
-  "title": "Damage Track",
+  "id": "DamageTracker",
+  "title": "Damage Tracker",
   "description": "<p>Foundry Virtual Tabletop framework module for tracking biggest hits and cumulative damage done.</p>",
   "authors": [
     {
@@ -9,7 +9,7 @@
     }
   ],
   "scripts": [
-    "scripts/damagetrack.js",
+    "scripts/damagetracker.js",
     "scripts/settings.js",
     "scripts/formapp.js"
   ],

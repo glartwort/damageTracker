@@ -5,7 +5,7 @@ Hooks.once("init", () => {
     name: "Details",
     label: "Details",
     hint: "See damage from each actor, configure detailed settings.",
-    type: DamageTrackSettings,
+    type: DamageTrackerSettings,
     restricted: false
   });
 
@@ -20,7 +20,7 @@ Hooks.once("init", () => {
   });
 
   game.settings.register(MODULE_ID, "clearTracking", {
-    name: "Reset all tracked data for Damage Track",
+    name: "Reset all tracked data for Damage Tracker",
     hint: "Clear all Damage Tracking data.",
     scope: "world",
     config: false,
