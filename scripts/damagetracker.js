@@ -71,7 +71,7 @@ Hooks.on("preCreateChatMessage", (message, data, options, userId) => {
     actorMap[key].maxDmg = damage;
     actorMap[key].totDmg = damage;
 
-    var Actortype = (isNPC)?"NPC":"PC";
+    const Actortype = (isNPC)?"NPC":"PC";
     
     if (isDebug) console.log(MODULE_ID, "|", "Created new", Actortype, "for:", name, "with", damage, "damage.");
   } 
