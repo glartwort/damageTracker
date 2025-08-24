@@ -1,6 +1,7 @@
-# damageTracker
+# DamageTracker
 Foundry Virtual Tabletop framework module for tracking biggest hits and cumulative damage done.
 
+# Basic Settings
 ![DamageTracker Settings page](image.png)
 
 2 settings on this page:
@@ -8,6 +9,8 @@ Foundry Virtual Tabletop framework module for tracking biggest hits and cumulati
 2. Debug Logging - this results in significanlty more "DamageTraacker |" messages in the debug console.
 
 Clicking on the [Details] button will bring up the primary UI for DamageTracker:
+
+# DamageTracker Details
 ![DamageTracker Details page](image-1.png)
 
 The buttons do what you'd expect:
@@ -20,6 +23,7 @@ Bolded names in the list are PCs, non-bolded are NPCs.
 
 This allows you to periodically clear the data (or see NPC data) before clearing it.
 
+# Terminology
 Description of the different columns:
   Max Roll = The maximum damage amount the creature/actor rolled.  
   Max Hit  = The maximum damage done, could be smaller than the Max Roll if the creature didn't have that many hitpoints, had resistance, made a save, etc.
