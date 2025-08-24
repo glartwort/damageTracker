@@ -1,4 +1,3 @@
-//stupid comment for testing.
 const MODULE_ID = "DamageTracker";
 var isDebug = false;
 
