@@ -11,8 +11,6 @@ Hooks.on("clientSettingChanged", (settingKey, newValue) => {
   }
 });
 
-//TODO: Should listen for damage "reverts" and clear that data
-
 Hooks.on("preCreateChatMessage", (message, data, options, userId) => {
   if (isDebug) console.log(MODULE_ID, "|", "preCreateChatMessage call detected");
 
@@ -20,13 +18,8 @@ Hooks.on("preCreateChatMessage", (message, data, options, userId) => {
   
   if (isDebug) console.log(MODULE_ID, "|", "ChatMessagePF2e call detected");
 
-  if (data.flags.pf2e.context.type === "damage-taken") {
-    
-    //TODO: if you try applying damage to someone at 0, this attempts to read null
-    if (!message.flags.pf2e.appliedDamage.updates) return;    
-
+  if (message.flags.pf2e.context.type === "damage-taken") {
     const isNPCLoggingEnabled =  game.settings.get(MODULE_ID, "enableNPCTracking");
-  
     const attackerId =  data.flags.pf2e.origin.actor;
     const attackActor = fromUuidSync(attackerId);
     const damageRegex = /span>\stakes\s(\d+)\sdamage./;
@@ -35,32 +28,71 @@ Hooks.on("preCreateChatMessage", (message, data, options, userId) => {
     const attacker =    attackActor.name;
     const isNPC =       (attackActor.type !== "character");
     const victim =      fromUuidSync(data.flags.pf2e.appliedDamage.uuid).name;
-    const npcTrackEnabled = game.settings.get(MODULE_ID, "enableNPCTracking");
-    
+        
     if ((!isNPC) || (isNPCLoggingEnabled)) {
-      let damageAmt = 0;
+      let damageRoll = 0;
       const dmgMatch = damageString.match(damageRegex);
 
       if (dmgMatch) {
-            damageAmt = parseInt(dmgMatch[1],10);
+            damageRoll = parseInt(dmgMatch[1],10);
       }
       
       if (isDebug) {
         console.log(MODULE_ID, "|", "Damage Taken!");
-        console.log(MODULE_ID, "|", "damage Amount: \t", damageAmt);
+        console.log(MODULE_ID, "|", "damage Amount: \t", damageRoll);
         console.log(MODULE_ID, "|", "damage: \t", damage);
         console.log(MODULE_ID, "|", "attacker: \t", attacker);
         console.log(MODULE_ID, "|", "attacker is NPC?:", isNPC)
         console.log(MODULE_ID, "|", "victim: \t", victim);
-        console.log(MODULE_ID, "|", "track NPCs?", npcTrackEnabled);
+        console.log(MODULE_ID, "|", "track NPCs?", isNPCLoggingEnabled);
       }
 
-      AddOrMergeActor(attackerId, attacker, isNPC, damageAmt, damage);
+      AddOrMergeActor(attackerId, attacker, isNPC, damageRoll, damage);
     }
   }
- });
+});
 
- async function AddOrMergeActor(key, name, isNPC, damageRoll, damage) {
+ //TODO: Should listen for damage "reverts" and clear that data
+Hooks.on("preUpdateChatMessage", (message, data, options, userId) => {
+  if (isDebug) console.log(MODULE_ID, "|", "preUpdateChatMessage call detected");
+
+  if (!message?.constructor?.name || message.constructor.name !== "ChatMessagePF2e") return;
+    
+  if (isDebug) console.log(MODULE_ID, "|", "ChatMessagePF2e call detected");
+
+  if (message.flags.pf2e.context.type === "damage-taken") {
+      
+    if (!message.flags.pf2e.appliedDamage.updates) return;    
+
+    if (data.flags.pf2e.appliedDamage.isReverted)
+    {
+      if (isDebug) console.log(MODULE_ID, "|", "Revert damage found");
+    
+      const attackerId =  message.flags.pf2e.origin.actor;
+      const damageRegex = /span>\stakes\s(\d+)\sdamage./;
+      const damageString = data.content;
+      const damage =      message.flags.pf2e.appliedDamage.updates[0].value;
+        
+              
+      let damageRoll = 0;
+      const dmgMatch = damageString.match(damageRegex);
+
+      if (!dmgMatch) 
+         return;
+        
+      damageRoll = parseInt(dmgMatch[1],10);
+        
+      if (isDebug) {
+        console.log(MODULE_ID, "|", "Damage Reverted!");
+        console.log(MODULE_ID, "|", "damage: \t", damage);
+      }
+
+      RevertDamage(attackerId, damageRoll, damage);
+    }
+  }
+});
+
+async function AddOrMergeActor(key, name, isNPC, damageRoll, damage) {
   const actorMap = game.settings.get(MODULE_ID, "damageMap") ?? {};
     
   if (!actorMap[key]) {   //create new actor in damageMap
@@ -84,6 +116,31 @@ Hooks.on("preCreateChatMessage", (message, data, options, userId) => {
     actorMap[key].totDmg = existing.totDmg + damage;
 
     if (isDebug) console.log(MODULE_ID, "|", "Merged data into existing", Actortype, "for:", existing.name, "with", damage, "damage.");
+  }
+  await game.settings.set(MODULE_ID, "damageMap", actorMap);
+}
+
+async function RevertDamage(key, damageRoll, damage) {
+  const actorMap = game.settings.get(MODULE_ID, "damageMap") ?? {};
+    
+  if (!actorMap[key]) {   //create new actor in damageMap
+    if (isDebug) console.log(MODULE_ID, "|", "Actor is not in the table to revert damage from");
+  } 
+  else {    //actor already exists, update
+    const existing = actorMap[key];
+    const Actortype = (existing.isNPC)?"NPC":"PC";
+    
+    if (actorMap[key].maxDmgRoll = damageRoll) {
+      actorMap[key].maxDmgRoll = 0;
+    }    
+    
+    if (actorMap[key].maxDmg = damage) {
+      actorMap[key].maxDmg = 0;
+    }
+
+    actorMap[key].totDmg = existing.totDmg - damage;
+
+    if (isDebug) console.log(MODULE_ID, "|", "Reverted damage from existing", Actortype, "for:", existing.name, "with", damage, "damage.");
   }
   await game.settings.set(MODULE_ID, "damageMap", actorMap);
 }
