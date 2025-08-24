@@ -2,7 +2,7 @@
 Foundry Virtual Tabletop framework module for tracking biggest hits and cumulative damage done.
 
 # Basic Settings
-![DamageTracker Settings page](image.png)
+![DamageTracker Settings page](assets\settings.png)
 
 2 settings on this page:
 1. NPC Damage Tracking determines whether you want to save NPC data in DamageTracker.  If you want PCs only, turn this off.
@@ -11,7 +11,7 @@ Foundry Virtual Tabletop framework module for tracking biggest hits and cumulati
 Clicking on the [Details] button will bring up the primary UI for DamageTracker:
 
 # DamageTracker Details
-![DamageTracker Details page](image-1.png)
+![DamageTracker Details page](assets\details.png)
 
 The buttons do what you'd expect:
   [Clear Tracking Data] will delete all tracking data.
