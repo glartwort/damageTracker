@@ -1,4 +1,4 @@
-name: PF2e Avoid Notice Release Pipeline
+name: DamageTracker Release Pipeline
 
 env:
   # The URL used for the module's "Project URL" link on FoundryVTT's website.
@@ -18,7 +18,7 @@ env:
 
 on:
   release:
-    types: [published, released]
+    types: [published]
 
 jobs:
   build:
@@ -68,7 +68,7 @@ jobs:
           LICENSE \
           ChangeLog.md \
           languages/ \
-          esmodules/ \
+          scripts/ \
           styles/ \
           # Or whatever more
 

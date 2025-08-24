@@ -19,6 +19,15 @@
     "verified": "13"
   },
   "relationships": {
+    "systems": [
+      {
+        "id": "pf2e",
+        "type": "system",
+        "compatibility": {
+          "verified": "7.4"
+        }
+      }
+    ],
     "requires": [
       {
         "id": "pf2e-toolbelt",
@@ -27,5 +36,13 @@
       }
     ]
   },
-  "flags": {}
+  "flags": {},
+  "url": "https://github.com/glartwort/damageTracker",
+  "manifest": "replaced",
+  "download": "replaced",
+  "changelog": "replaced",
+  "bugs": "https://github.com/glartwort/damageTracker/issues",
+  "readme": "replaced",
+  "license": "replaced"
 }
+
