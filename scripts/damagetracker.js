@@ -1,4 +1,5 @@
 const MODULE_ID = "damage-tracker";
+const UNIDENTIFIED_ATTACKER = "<Unidentified source>";
 var isDebug = false;
 
 console.log(MODULE_ID, "|", MODULE_ID, "is loaded.");
@@ -20,14 +21,21 @@ Hooks.on("preCreateChatMessage", (message, data, options, userId) => {
 
   if (message.flags.pf2e.context?.type === "damage-taken") {
     const isNPCLoggingEnabled =  game.settings.get(MODULE_ID, "enableNPCTracking");
-    const attackerId =  data.flags.pf2e.origin.actor;
-    const attackActor = fromUuidSync(attackerId);
+    let attackerId =  data.flags.pf2e.origin?.actor;
+    const attackActor = (attackerId)?fromUuidSync(attackerId):null;
+    const attacker =    (attackActor)?attackActor.name:UNIDENTIFIED_ATTACKER;
+    let isNPC =       (attackActor?.type !== "character");
+
+    if (!attackerId) {  //invalid attackerId usually indicates manually applied damage (or unarmed strikes)
+      isNPC =       false;      // since it might be from a PC, we need to treat it as such
+      attackerId =  UNIDENTIFIED_ATTACKER;  //give it a value since checking a null key isn't good
+    }
+
     const damageRegex = /span>\stakes\s(\d+)\sdamage./;
     const damageString = data.content;
-    const damage =      message.flags.pf2e.appliedDamage.updates[0].value;
-    const attacker =    attackActor.name;
-    const isNPC =       (attackActor.type !== "character");
-    const victim =      fromUuidSync(data.flags.pf2e.appliedDamage.uuid).name;
+    const validUpdate = message.flags.pf2e.appliedDamage?.updates;  //if missing, 0 damage done - process to get damageRoll anyway
+    const damage =      (validUpdate)?validUpdate[0].value:0;
+    const victim =      fromUuidSync(data.flags.pf2e.appliedDamage?.uuid)?.name;
         
     if ((!isNPC) || (isNPCLoggingEnabled)) {
       let damageRoll = 0;
@@ -67,8 +75,16 @@ Hooks.on("preUpdateChatMessage", (message, data, options, userId) => {
     if (data.flags.pf2e.appliedDamage.isReverted)
     {
       if (isDebug) console.log(MODULE_ID, "|", "Revert damage found");
-    
-      const attackerId =  message.flags.pf2e.origin.actor;
+
+      let attackerId =  message.flags.pf2e.origin?.actor;
+      const attackActor = (attackerId)?fromUuidSync(attackerId):null;
+      let isNPC =       (attackActor?.type !== "character");
+
+      if (!attackerId) {  //invalid attackerId usually indicates manually applied damage (or unarmed strikes)
+        isNPC =       false;                  //since it might be from a PC, we need to treat it as such
+        attackerId =  UNIDENTIFIED_ATTACKER;  //give it a value since checking a null key isn't good
+      }
+
       const damageRegex = /span>\stakes\s(\d+)\sdamage./;
       const damageString = data.content;
       const damage =      message.flags.pf2e.appliedDamage.updates[0].value;

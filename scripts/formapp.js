@@ -43,7 +43,6 @@ class DamageTrackerSettings extends FormApplication {
       this._listenersActivated = true;
       this._pollInterval = setInterval(() => {
         if (this.rendered) this.render(false);
-        console.log("render");
       },7000);
     };
 
@@ -120,7 +119,7 @@ class DamageTrackerSettings extends FormApplication {
   close() {
     clearInterval(this._pollInterval);
     super.close();
-    console.log(MODULE_ID, "| removed timer, closed activelisteners");
+    if (isDebug) console.log(MODULE_ID, "| removed FormApplication timer, closed activelisteners");
   }
 
 }
