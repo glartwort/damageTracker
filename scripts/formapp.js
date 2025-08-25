@@ -39,6 +39,14 @@ class DamageTrackerSettings extends FormApplication {
   activateListeners(html) {
     super.activateListeners(html);
 
+    if (!this._listenersActivated) {
+      this._listenersActivated = true;
+      this._pollInterval = setInterval(() => {
+        if (this.rendered) this.render(false);
+        console.log("render");
+      },7000);
+    };
+
     html.find(".clear-tracking-button").click(async () => {
       const confirmed = await Dialog.confirm({
         title: "Confirm Clear",
@@ -108,4 +116,11 @@ class DamageTrackerSettings extends FormApplication {
       }).render(true);
     });
   }
+
+  close() {
+    clearInterval(this._pollInterval);
+    super.close();
+    console.log(MODULE_ID, "| removed timer, closed activelisteners");
+  }
+
 }
