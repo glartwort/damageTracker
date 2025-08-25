@@ -67,8 +67,10 @@ jobs:
           README.md \
           LICENSE \
           ChangeLog.md \
+          assets/ \
           languages/ \
           scripts/ \
+          templates/ \
           styles/ \
           # Or whatever more
 
