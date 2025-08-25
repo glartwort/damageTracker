@@ -4,7 +4,7 @@ class DamageTrackerSettings extends FormApplication {
       ...super.defaultOptions,
       title: "Damage Tracker Settings",
       id: "damage-tracker-settings",
-      template: "modules/damagetracker/templates/settings.hbs",
+      template: `modules/${MODULE_ID}/templates/settings.hbs`,
       width: 600,
       height: "auto",
       resizable: false

@@ -1,4 +1,4 @@
-const MODULE_ID = "DamageTracker";
+const MODULE_ID = "damage-tracker";
 var isDebug = false;
 
 console.log(MODULE_ID, "|", MODULE_ID, "is loaded.");
@@ -18,7 +18,7 @@ Hooks.on("preCreateChatMessage", (message, data, options, userId) => {
   
   if (isDebug) console.log(MODULE_ID, "|", "ChatMessagePF2e call detected");
 
-  if (message.flags.pf2e.context.type === "damage-taken") {
+  if (message.flags.pf2e.context?.type === "damage-taken") {
     const isNPCLoggingEnabled =  game.settings.get(MODULE_ID, "enableNPCTracking");
     const attackerId =  data.flags.pf2e.origin.actor;
     const attackActor = fromUuidSync(attackerId);
