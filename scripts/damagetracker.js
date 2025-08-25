@@ -60,7 +60,7 @@ Hooks.on("preUpdateChatMessage", (message, data, options, userId) => {
     
   if (isDebug) console.log(MODULE_ID, "|", "ChatMessagePF2e call detected");
 
-  if (message.flags.pf2e.context.type === "damage-taken") {
+  if (message.flags.pf2e.context?.type === "damage-taken") {
       
     if (!message.flags.pf2e.appliedDamage.updates) return;    
 
