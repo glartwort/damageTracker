@@ -1,5 +1,5 @@
 {
-  "id": "DamageTracker",
+  "id": "damage-tracker",
   "title": "Damage Tracker",
   "description": "<p>Foundry Virtual Tabletop framework module for tracking biggest hits and cumulative damage done.</p>",
   "authors": [
