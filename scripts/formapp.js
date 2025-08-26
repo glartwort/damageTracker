@@ -94,18 +94,16 @@ class DamageTrackerSettings extends FormApplication {
     });
 
     html.find(".export-damage-map").click(() => {
-      var exportData = "<!DOCTYPE html><html><body><table><th padding: 10px 20px;>Actor Name</th><th padding: 10px 20px;>Max Damage Roll</th><th padding: 10px 20px;>Max Damage</th><th padding: 10px 20px;>Total Damage</th>";
+      var exportData = "Actor Name, isNPC, Max Damage Roll, Max Damage, Total Damage\n";
       const dmgMap = game.settings.get(MODULE_ID,"damageMap");
       const sortedActors = Object.values(dmgMap).sort((a,b) => b.totDmg - a.totDmg);
 
       sortedActors.forEach(actor => {
-        exportData += `<tr><td>${actor.name}</td><td style="vertical-align: middle;">${actor.maxDmgRoll}</td><td style=style= vertical-align: middle;">${actor.maxDmg}</td><td style= vertical-align: middle;">${actor.totDmg}</td></tr>`;
+        exportData += `${actor.name}, ${actor.isNPC}, ${actor.maxDmgRoll}, ${actor.maxDmg}, ${actor.totDmg}\n`;
       });
 
-      exportData += `</table></body></html>`;
-
       new Dialog({
-        title: "Export Damage Data",
+        title: "Export Damage Data (CSV)",
         content: `<textarea readonly style="width:100%; height:300px;">${exportData}</textarea>`,
         buttons: {
           close: {
