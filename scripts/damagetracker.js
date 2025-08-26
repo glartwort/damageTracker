@@ -165,9 +165,16 @@ async function StashDamageRoll(key, name, isNPC, damageRoll) {
 
 function checkAndUpdateMaxDmgRoll(actor,damageRoll) {
   let currentMax = (actor.maxDmgRoll)?actor.maxDmgRoll:0;
+  
   if (damageRoll > currentMax) {
     actor.prevMaxDmgRoll = currentMax;
     actor.maxDmgRoll = damageRoll;
+  } else {
+    // if the roll isn't bigger than the current max, but previous max is zero, update previous max.
+    // This will mostly likely occur due to a revert (that set previous max to 0).
+    if (actor.prevMaxDmgRoll==0) {
+      actor.prevMaxDmgRoll = damageRoll;
+    }
   }
 }
 
@@ -176,6 +183,12 @@ function checkAndUpdateMaxDmg(actor,damage) {
   if (damage > currentMax) {
     actor.prevMaxDmg = currentMax;
     actor.maxDmg = damage;
+   } else {
+    // if the damage isn't bigger than the current max, but previous max is zero, update previous max.
+    // This will mostly likely occur due to a revert (that set previous max to 0).
+    if (actor.prevMaxDmg==0) {
+      actor.prevMaxDmg = damage;
+    }
   }
 }
       
