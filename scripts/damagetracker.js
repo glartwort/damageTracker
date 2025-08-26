@@ -149,20 +149,48 @@ async function StashDamageRoll(key, name, isNPC, damageRoll) {
     actorMap[key].name = name;
     actorMap[key].isNPC = isNPC;
     actorMap[key].maxDmgRoll = damageRoll;
+    actorMap[key].prevMaxDmgRoll = 0;
 
     if (isDebug) console.log(MODULE_ID, "|", "Created new", (isNPC)?"NPC":"PC", "for:", name, "with", damageRoll, "damage.");
   }
   else {
     const existing = actorMap[key];
-    actorMap[key].maxDmgRoll = Math.max(existing.maxDmgRoll, damageRoll);
-  
+    checkAndUpdateMaxDmgRoll(existing,damageRoll);
+   
     if (isDebug) console.log(MODULE_ID, "|", "Merged data into existing", (isNPC)?"NPC":"PC", "for:", existing.name, "with", damageRoll, "damage.");
   }
 
   await game.settings.set(MODULE_ID, "damageMap", actorMap);
 }
 
+function checkAndUpdateMaxDmgRoll(actor,damageRoll) {
+  let currentMax = (actor.maxDmgRoll)?actor.maxDmgRoll:0;
+  
+  if (damageRoll > currentMax) {
+    actor.prevMaxDmgRoll = currentMax;
+    actor.maxDmgRoll = damageRoll;
+  } else {
+    // if the roll isn't bigger than the current max, but previous max is zero, update previous max.
+    // This will mostly likely occur due to a revert (that set previous max to 0).
+    if (actor.prevMaxDmgRoll==0) {
+      actor.prevMaxDmgRoll = damageRoll;
+    }
+  }
+}
 
+function checkAndUpdateMaxDmg(actor,damage) {
+  let currentMax = (actor.maxDmg)?actor.maxDmg:0;
+  if (damage > currentMax) {
+    actor.prevMaxDmg = currentMax;
+    actor.maxDmg = damage;
+   } else {
+    // if the damage isn't bigger than the current max, but previous max is zero, update previous max.
+    // This will mostly likely occur due to a revert (that set previous max to 0).
+    if (actor.prevMaxDmg==0) {
+      actor.prevMaxDmg = damage;
+    }
+  }
+}
       
 async function AddOrMergeActor(key, name, isNPC, damageRoll, damage) {
   const actorMap = game.settings.get(MODULE_ID, "damageMap") ?? {};
@@ -172,7 +200,9 @@ async function AddOrMergeActor(key, name, isNPC, damageRoll, damage) {
     actorMap[key].name = name;
     actorMap[key].isNPC = isNPC;
     actorMap[key].maxDmgRoll = damageRoll;
+    actorMap[key].prevMaxDmgRoll = 0;
     actorMap[key].maxDmg = damage;
+    actorMap[key].prevMaxDmg = 0;
     actorMap[key].totDmg = damage;
 
     const Actortype = (isNPC)?"NPC":"PC";
@@ -180,18 +210,19 @@ async function AddOrMergeActor(key, name, isNPC, damageRoll, damage) {
     if (isDebug) console.log(MODULE_ID, "|", "Created new", (isNPC)?"NPC":"PC", "for:", name, "with", damage, "damage.");
   } 
   else {    //actor already exists, update
-    const existing = actorMap[key];
-    const Actortype = (existing.isNPC)?"NPC":"PC";
+    const actor = actorMap[key];
+    const Actortype = (actor.isNPC)?"NPC":"PC";
     
     let absMaxDmg = Math.max(damageRoll,damage);  //if damage is > damageRoll, use that.. 
 
-    actorMap[key].maxDmgRoll = Math.max(existing.maxDmgRoll,absMaxDmg);
+    checkAndUpdateMaxDmgRoll(actor,absMaxDmg);
         
     //existing maxDmg and totDmg could be NaN - it's not added by StashDamageRoll
-    actorMap[key].maxDmg = (existing.maxDmg)?Math.max(existing.maxDmg, damage):damage;
-    actorMap[key].totDmg = (existing.totDmg)?existing?.totDmg + damage:damage;
+    checkAndUpdateMaxDmg(actor,damage);
+
+    actor.totDmg = (actor.totDmg)?actor.totDmg + damage:damage;
     
-    if (isDebug) console.log(MODULE_ID, "|", "Merged data into existing", (isNPC)?"NPC":"PC", "for:", existing.name, "with", damage, "damage.");
+    if (isDebug) console.log(MODULE_ID, "|", "Merged data into existing", (isNPC)?"NPC":"PC", "for:", actor.name, "with", damage, "damage.");
   }
   await game.settings.set(MODULE_ID, "damageMap", actorMap);
 }
@@ -199,24 +230,29 @@ async function AddOrMergeActor(key, name, isNPC, damageRoll, damage) {
 async function RevertDamage(key, damageRoll, damage) {
   const actorMap = game.settings.get(MODULE_ID, "damageMap") ?? {};
     
-  if (!actorMap[key]) {   //create new actor in damageMap
+  if (!actorMap[key]) {  
     if (isDebug) console.log(MODULE_ID, "|", "Actor is not in the table to revert damage from");
   } 
   else {    //actor already exists, update
-    const existing = actorMap[key];
-    const Actortype = (existing.isNPC)?"NPC":"PC";
+    const actor = actorMap[key];
+    const Actortype = (actor.isNPC)?"NPC":"PC";
     
-    if (actorMap[key].maxDmgRoll = damageRoll) {
-      actorMap[key].maxDmgRoll = 0;
+    if (actor.maxDmgRoll == damageRoll) {
+      actor.maxDmgRoll = actor.prevMaxDmgRoll;
+      actor.prevMaxDmgRoll = 0;     //don't save the current or it could never revert that roll.  Shouldn't happen, but just in case.
+
     }    
     
-    if (actorMap[key].maxDmg = damage) {
-      actorMap[key].maxDmg = 0;
+    if (actor.maxDmg == damage) {
+      actor.maxDmg = actor.prevMaxDmg;
+      actor.prevMaxDmg = 0;     //don't save the current or it could never revert that roll.  Shouldn't happen, but just in case.
     }
 
-    actorMap[key].totDmg = existing.totDmg - damage;
+    actor.totDmg += -damage;
 
-    if (isDebug) console.log(MODULE_ID, "|", "Reverted damage from existing", (existing.isNPC)?"NPC":"PC", "for:", existing.name, "with", damage, "damage.");
+    if (isDebug) console.log(MODULE_ID, "|", "Reverted damage from existing", (actor.isNPC)?"NPC":"PC", "for:", actor.name, "with", damage, "damage.");
+  
+    await game.settings.set(MODULE_ID, "damageMap", actorMap);
   }
-  await game.settings.set(MODULE_ID, "damageMap", actorMap);
+  
 }
