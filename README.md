@@ -2,7 +2,7 @@
 Foundry Virtual Tabletop framework module for tracking biggest hits and cumulative damage done.
 
 # Basic Settings
-![DamageTracker Settings page](assets/settings.png)
+![DamageTracker Settings page](assets/settings.webp)
 
 2 settings on this page:
 1. NPC Damage Tracking determines whether you want to save NPC data in DamageTracker.  If you want PCs only, turn this off.
@@ -11,17 +11,14 @@ Foundry Virtual Tabletop framework module for tracking biggest hits and cumulati
 Clicking on the [Details] button will bring up the primary UI for DamageTracker:
 
 # DamageTracker Details
-![DamageTracker Details page](assets/details.png)
+![DamageTracker Details page](assets/details.webp)
+
+**Bolded** names in the list are PCs, non-bolded are NPCs.
 
 The buttons do what you'd expect:
-  [Clear Tracking Data] will delete all tracking data.
-  [Clear NPC Tracking Data] will delete any NPC data.  
-
-Bolded names in the list are PCs, non-bolded are NPCs.
-
-  [Export Damage Data] will produce a copyable HTML doc.  If you save this as a .html file and open in a browser, you'll get a similar looking table.
-
-This allows you to periodically clear the data (or see NPC data) before clearing it.
+- [Clear Tracking Data] will delete all tracking data.
+- [Clear NPC Tracking Data] will delete any NPC data.  
+- [Export Damage Data] will produce a copyable HTML doc.  If you save this as a .html file and open in a browser, you'll get a similar looking table. This allows you to periodically clear the data (or see NPC data) before clearing it.
 
 # Terminology
 Description of the different columns:
@@ -30,7 +27,7 @@ Description of the different columns:
   - Total Damage = The cumulative damage done (while the log has been collecting).
 
 # Usage Details
-There are a couple ways you can use this module, both are basically for bragging rights for your players (or you if you're a malicious sort of GM).
+There are a couple ways you can use this module, both are basically for vanity/bragging rights for your players (or you if you're a malicious sort of GM).
 
  1. Use it to feed a dashboard for the players.  I previously had something where I'd analyze the log files to keep track of 
       - Biggest Hitter: (PC who's done the most damage in a single strike)
@@ -40,8 +37,7 @@ There are a couple ways you can use this module, both are basically for bragging
       
       This module doesn't deal with CRs or who is the biggest hittee (though the last one might be something I do at some point).
 
-      Anyway, using these you could build a "Player Home" screen.. probably one that looks better than the one I'm using for Seven Dooms for Sandpoint:
-      ![Party Home screen](assets/party_home.jpg)
+      Using these you could build a "Player Home" screen.
   
   2. A curiousity for anyone interested.
       Damage Tracker is viewable by players as well.  This is a good reason to disable NPC tracking (i.e. just track PC damages).
