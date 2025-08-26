@@ -1,5 +1,5 @@
 const MODULE_ID = "damage-tracker";
-const UNIDENTIFIED_ATTACKER = "<Unidentified source>";
+const UNIDENTIFIED_ATTACKER = "Unidentified Source";
 var isDebug = false;
 
 console.log(MODULE_ID, "|", MODULE_ID, "is loaded.");
@@ -12,16 +12,18 @@ Hooks.on("clientSettingChanged", (settingKey, newValue) => {
   }
 });
 
-Hooks.on("preCreateChatMessage", (message, data, options, userId) => {
-  if (isDebug) console.log(MODULE_ID, "|", "preCreateChatMessage call detected");
+
+Hooks.on("createChatMessage", (message, data, options, userId) => {
+  if (isDebug) console.log(MODULE_ID, "|", "createChatMessage call detected");
 
   if (!message?.constructor?.name || message.constructor.name !== "ChatMessagePF2e") return;
   
   if (isDebug) console.log(MODULE_ID, "|", "ChatMessagePF2e call detected");
 
+  //Get actual damage being applied
   if (message.flags.pf2e.context?.type === "damage-taken") {
     const isNPCLoggingEnabled =  game.settings.get(MODULE_ID, "enableNPCTracking");
-    let attackerId =  data.flags.pf2e.origin?.actor;
+    let attackerId =  message.flags.pf2e.origin?.actor;
     const attackActor = (attackerId)?fromUuidSync(attackerId):null;
     const attacker =    (attackActor)?attackActor.name:UNIDENTIFIED_ATTACKER;
     let isNPC =       (attackActor?.type !== "character");
@@ -32,10 +34,10 @@ Hooks.on("preCreateChatMessage", (message, data, options, userId) => {
     }
 
     const damageRegex = /span>\stakes\s(\d+)\sdamage./;
-    const damageString = data.content;
+    const damageString = message.content;
     const validUpdate = message.flags.pf2e.appliedDamage?.updates;  //if missing, 0 damage done - process to get damageRoll anyway
     const damage =      (validUpdate)?validUpdate[0].value:0;
-    const victim =      fromUuidSync(data.flags.pf2e.appliedDamage?.uuid)?.name;
+    const victim =      fromUuidSync(message.flags.pf2e.appliedDamage?.uuid)?.name;
         
     if ((!isNPC) || (isNPCLoggingEnabled)) {
       let damageRoll = 0;
@@ -58,11 +60,42 @@ Hooks.on("preCreateChatMessage", (message, data, options, userId) => {
       AddOrMergeActor(attackerId, attacker, isNPC, damageRoll, damage);
     }
   }
+
+  //Stash damage rolls for later reference (when damage is applied)
+  if (message.flags.pf2e.context?.type === "damage-roll") {
+    const isNPCLoggingEnabled =  game.settings.get(MODULE_ID, "enableNPCTracking");
+    let attackerId =  message.flags.pf2e.origin?.actor;
+    const attackActor = (attackerId)?fromUuidSync(attackerId):null;
+    const attacker =    (attackActor)?attackActor.name:UNIDENTIFIED_ATTACKER;
+    let isNPC =       (attackActor?.type !== "character");
+
+    if (!attackerId) {  //invalid attackerId usually indicates manually applied damage (or unarmed strikes)
+      isNPC =       false;      // since it might be from a PC, we need to treat it as such
+      attackerId =  UNIDENTIFIED_ATTACKER;  //give it a value since checking a null key isn't good
+    }
+
+    if ((!isNPC) || (isNPCLoggingEnabled)) {
+      let damageRoll = 0;
+      message.rolls.forEach(r => {
+        damageRoll = Math.max(damageRoll,r.total);
+      });
+            
+      if (isDebug) {
+        console.log(MODULE_ID, "|", "Damage Taken!");
+        console.log(MODULE_ID, "|", "damage Amount: \t", damageRoll);
+        console.log(MODULE_ID, "|", "attacker: \t", attacker);
+        console.log(MODULE_ID, "|", "attacker is NPC?:", isNPC)
+        console.log(MODULE_ID, "|", "track NPCs?", isNPCLoggingEnabled);
+      }
+
+      StashDamageRoll(attackerId, attacker, isNPC, damageRoll);
+    }
+  }
 });
 
- //TODO: Should listen for damage "reverts" and clear that data
-Hooks.on("preUpdateChatMessage", (message, data, options, userId) => {
-  if (isDebug) console.log(MODULE_ID, "|", "preUpdateChatMessage call detected");
+//Listen for damage "reverts" and clear that data
+Hooks.on("updateChatMessage", (message, data, options, userId) => {
+  if (isDebug) console.log(MODULE_ID, "|", "UpdateChatMessage call detected");
 
   if (!message?.constructor?.name || message.constructor.name !== "ChatMessagePF2e") return;
     
@@ -108,6 +141,29 @@ Hooks.on("preUpdateChatMessage", (message, data, options, userId) => {
   }
 });
 
+async function StashDamageRoll(key, name, isNPC, damageRoll) {
+  const actorMap = game.settings.get(MODULE_ID, "damageMap") ?? {};
+  
+  if (!actorMap[key]) {   //create new actor in damageRolls
+    actorMap[key] = {};
+    actorMap[key].name = name;
+    actorMap[key].isNPC = isNPC;
+    actorMap[key].maxDmgRoll = damageRoll;
+
+    if (isDebug) console.log(MODULE_ID, "|", "Created new", (isNPC)?"NPC":"PC", "for:", name, "with", damageRoll, "damage.");
+  }
+  else {
+    const existing = actorMap[key];
+    actorMap[key].maxDmgRoll = Math.max(existing.maxDmgRoll, damageRoll);
+  
+    if (isDebug) console.log(MODULE_ID, "|", "Merged data into existing", (isNPC)?"NPC":"PC", "for:", existing.name, "with", damageRoll, "damage.");
+  }
+
+  await game.settings.set(MODULE_ID, "damageMap", actorMap);
+}
+
+
+      
 async function AddOrMergeActor(key, name, isNPC, damageRoll, damage) {
   const actorMap = game.settings.get(MODULE_ID, "damageMap") ?? {};
     
@@ -121,17 +177,21 @@ async function AddOrMergeActor(key, name, isNPC, damageRoll, damage) {
 
     const Actortype = (isNPC)?"NPC":"PC";
     
-    if (isDebug) console.log(MODULE_ID, "|", "Created new", Actortype, "for:", name, "with", damage, "damage.");
+    if (isDebug) console.log(MODULE_ID, "|", "Created new", (isNPC)?"NPC":"PC", "for:", name, "with", damage, "damage.");
   } 
   else {    //actor already exists, update
     const existing = actorMap[key];
     const Actortype = (existing.isNPC)?"NPC":"PC";
     
-    actorMap[key].maxDmgRoll = Math.max(existing.maxDmgRoll, damageRoll);
-    actorMap[key].maxDmg = Math.max(existing.maxDmg, damage);
-    actorMap[key].totDmg = existing.totDmg + damage;
+    let absMaxDmg = Math.max(damageRoll,damage);  //if damage is > damageRoll, use that.. 
 
-    if (isDebug) console.log(MODULE_ID, "|", "Merged data into existing", Actortype, "for:", existing.name, "with", damage, "damage.");
+    actorMap[key].maxDmgRoll = Math.max(existing.maxDmgRoll,absMaxDmg);
+        
+    //existing maxDmg and totDmg could be NaN - it's not added by StashDamageRoll
+    actorMap[key].maxDmg = (existing.maxDmg)?Math.max(existing.maxDmg, damage):damage;
+    actorMap[key].totDmg = (existing.totDmg)?existing?.totDmg + damage:damage;
+    
+    if (isDebug) console.log(MODULE_ID, "|", "Merged data into existing", (isNPC)?"NPC":"PC", "for:", existing.name, "with", damage, "damage.");
   }
   await game.settings.set(MODULE_ID, "damageMap", actorMap);
 }
@@ -156,7 +216,7 @@ async function RevertDamage(key, damageRoll, damage) {
 
     actorMap[key].totDmg = existing.totDmg - damage;
 
-    if (isDebug) console.log(MODULE_ID, "|", "Reverted damage from existing", Actortype, "for:", existing.name, "with", damage, "damage.");
+    if (isDebug) console.log(MODULE_ID, "|", "Reverted damage from existing", (existing.isNPC)?"NPC":"PC", "for:", existing.name, "with", damage, "damage.");
   }
   await game.settings.set(MODULE_ID, "damageMap", actorMap);
 }
