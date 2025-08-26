@@ -13,6 +13,7 @@ Hooks.once("init", () => {
     scope: "world",
     config: true,
     type: Boolean,
+    requiresReload: false,
     default: true
   });
 
@@ -22,6 +23,7 @@ Hooks.once("init", () => {
     scope: "client",
     config: true,
     type: Boolean,
+    requiresReload: false,
     default: false
   });
 
