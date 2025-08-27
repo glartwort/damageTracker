@@ -254,6 +254,7 @@ async function RevertDamage(key, damageRoll, damage) {
     if (isDebug) console.log(LOG_PREFIX, "Reverted damage from existing", (actor.isNPC)?"NPC":"PC", "for:", actor.name, "with", damage, "damage.");
   
     await game.settings.set(MODULE_ID, "damageMap", actorMap);
+    
   }
   
 }

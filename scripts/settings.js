@@ -1,6 +1,6 @@
 let myFormAppInstance;
 
-Hooks.once("init", () => {
+Hooks.once("init", async() => {
   game.settings.registerMenu(MODULE_ID, "settingsMenu", {
     name: "Details",
     label: "Details",
@@ -59,7 +59,13 @@ Hooks.once("init", () => {
     default: {}
   });
 
+  await loadTemplates([
+    `modules/${MODULE_ID}/templates/partials/topButtons.hbs`,
+    `modules/${MODULE_ID}/templates/partials/tableContent.hbs`,
+    `modules/${MODULE_ID}/templates/partials/exportButton.hbs`
+  ]);
 
+  
   isDebug = game.settings.get(MODULE_ID, "isDebug");
 
   if (isDebug) console.log(LOG_PREFIX, "settings registered.");

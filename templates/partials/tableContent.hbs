@@ -1,0 +1,29 @@
+<div class="damageTable">
+  <table class="damage-table" style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th style="border-bottom: 1px solid #ccc; text-align: left;">Name</th>
+        <th style="border-bottom: 1px solid #ccc; text-align: center;">Max Roll</th>
+        <th style="border-bottom: 1px solid #ccc; text-align: center;">Max Hit</th>
+        <th style="border-bottom: 1px solid #ccc; text-align: center;">Total Damage</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#if formData.actors.length}}
+        {{#each formData.actors}}
+          <tr>
+            <td>
+              {{#unless this.isNPC}}<strong>{{this.name}}</strong>{{else}}{{this.name}}{{/unless}}
+            </td>
+            <td style="text-align: center;">{{this.maxDmgRoll}}</td>
+            <td style="text-align: center;">{{this.maxDmg}}</td>
+            <td style="text-align: center;">{{this.totDmg}}</td>
+          </tr>
+        {{/each}}
+      {{else}}
+        <tr><td colspan="5" style="text-align: center;"><strong><i>There is no tracking data saved.</i></strong></td></tr>
+      {{/if}}
+    </tbody>
+  </table>
+  <p><strong>Bolded names</strong> are Player Characters. <p></p>
+</div>
