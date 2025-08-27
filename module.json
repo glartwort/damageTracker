@@ -13,9 +13,6 @@
     "scripts/settings.js",
     "scripts/formapp.js"
   ],
-  "styles": [
-    "styles/dialog.css"
-  ],
   "version": "1.0.0",
   "compatibility": {
     "minimum": "13",
