@@ -13,9 +13,9 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
   };
 
   static PARTS = {
-    form: {
-      template: `modules/${MODULE_ID}/templates/settings.hbs`
-    }
+    topButtons: {template: `modules/${MODULE_ID}/templates/partials/topButtons.hbs`},
+    content: {template: `modules/${MODULE_ID}/templates/partials/tableContent.hbs`},
+    exportButton: {template: `modules/${MODULE_ID}/templates/partials/exportButton.hbs`},
   }
 
   get document() {
@@ -25,8 +25,6 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
   get title() {
     return this.options.window.title;
   }
-  
-  #debouncedRefresh = foundry.utils.debounce(() => this.render(true), 300);
 
   async _onRender(context,options) {
     const html = this.element;
@@ -35,20 +33,25 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
       html.querySelector(".clear-tracking-button")?.addEventListener("click", this.#onClearTrackingClick.bind(this));
       html.querySelector(".clear-NPCs-button")?.addEventListener("click", this.#onClearNPCsClick.bind(this));
       html.querySelector(".export-damage-map")?.addEventListener("click", this.#onExportDamapgeMapClick.bind(this));
+    
+      // Start refresh loop - only set when listeners are initially bound 
+      // i.e. don't check this every render
+      if (!this._pollInterval) {
+        this._pollInterval = setInterval(() => {
+          if (this.rendered) this.refreshContent();
+        }, 3000); // 3 seconds
+      }
     }
+  }
 
-    // Start refresh loop
-    if (!this._pollInterval) {
-      this._pollInterval = setInterval(() => {
-        if (this.rendered) this.render(false);
-      }, 3000); // 3 seconds
-    }
+  _getSortedActorData() {
+    const dmgMap = game.settings.get(MODULE_ID, "damageMap");
+    return Object.values(dmgMap).sort((a, b) => b.totDmg - a.totDmg);
   }
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const dmgMap = game.settings.get(MODULE_ID,"damageMap");
-    const sortedActors = Object.values(dmgMap).sort((a,b) => b.totDmg - a.totDmg);
+    const sortedActors = this._getSortedActorData();
 
     if (isDebug) {
       console.log(LOG_PREFIX, "DamageTracker Actor list: ");
@@ -158,6 +161,22 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     
     expDialog.render(true);
+  }
+
+  async refreshContent() {
+    const container = this.element?.querySelector(".damageTable");  //top element of tableContent.hbs
+    if (!container) return;
+
+    // Prepare fresh data
+    const formData = {
+      actors: this._getSortedActorData() 
+    };
+
+    // Render the partial template
+    const newHTML = await renderTemplate(DamageTrackerSettings.PARTS.content.template, { formData });
+
+    // Replace the content
+     container.innerHTML = newHTML;
   }
 
   close() {
