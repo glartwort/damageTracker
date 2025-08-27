@@ -1,3 +1,5 @@
+let myFormAppInstance;
+
 Hooks.once("init", () => {
   game.settings.registerMenu(MODULE_ID, "settingsMenu", {
     name: "Details",
@@ -5,6 +7,28 @@ Hooks.once("init", () => {
     hint: "See damage from each actor, configure detailed settings.",
     type: DamageTrackerSettings,
     restricted: false
+  });
+
+  game.keybindings.register(MODULE_ID, 'openMyFormApp', {
+    name: 'Open Damage Tracker Details page',
+    hint: 'Press this key to open the Damage Tracker Details',
+    editable: [
+      {
+        key: 'KeyD',
+        modifiers: ['Control']
+      }
+    ],
+    onDown: () => {
+      if (myFormAppInstance?.rendered) {
+        myFormAppInstance.close();
+      } else {
+        myFormAppInstance = new DamageTrackerSettings();
+        myFormAppInstance.render(true);
+      }
+      return true;
+    },
+    restricted: false,
+    precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
   });
 
   game.settings.register(MODULE_ID, "enableNPCTracking", {
@@ -27,15 +51,6 @@ Hooks.once("init", () => {
     default: false
   });
 
-  game.settings.register(MODULE_ID, "clearTracking", {
-    name: "Reset all tracked data for Damage Tracker",
-    hint: "Clear all Damage Tracking data.",
-    scope: "world",
-    config: false,
-    type: Boolean,
-    default: false
-  });
-
   game.settings.register(MODULE_ID, "damageMap", {
     name: "Damage Map",
     scope: "world",
@@ -47,5 +62,5 @@ Hooks.once("init", () => {
 
   isDebug = game.settings.get(MODULE_ID, "isDebug");
 
-  if (isDebug) console.log(MODULE_ID, "|", "settings registered.");
+  if (isDebug) console.log(LOG_PREFIX, "settings registered.");
 });
