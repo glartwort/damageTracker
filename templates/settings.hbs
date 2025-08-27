@@ -20,15 +20,15 @@
         </tr>
       </thead>
       <tbody>
-        {{#if actors.length}}
-          {{#each actors}}
+        {{#if formData.actors.length}}
+          {{#each formData.actors}}
             <tr>
               <td>
-                {{#unless isNPC}}<strong>{{name}}</strong>{{else}}{{name}}{{/unless}}
+                {{#unless this.isNPC}}<strong>{{this.name}}</strong>{{else}}{{this.name}}{{/unless}}
               </td>
-              <td style="text-align: center;">{{maxDmgRoll}}</td>
-              <td style="text-align: center;">{{maxDmg}}</td>
-              <td style="text-align: center;">{{totDmg}}</td>
+              <td style="text-align: center;">{{this.maxDmgRoll}}</td>
+              <td style="text-align: center;">{{this.maxDmg}}</td>
+              <td style="text-align: center;">{{this.totDmg}}</td>
             </tr>
           {{/each}}
         {{else}}
@@ -39,7 +39,7 @@
   </div>
   <p><strong>Bolded names</strong> are Player Characters. <p>
 
-  <div class="export-controls" style="margin-top: 1em;">
+  <div style="margin-top: 1em;">
     <button type="button" class="export-damage-map">
       <i class="fas fa-download"></i> Export Damage Data
     </button>    

@@ -1,12 +1,13 @@
 const MODULE_ID = "damage-tracker";
+const LOG_PREFIX = `${MODULE_ID} |`;
 const UNIDENTIFIED_ATTACKER = "Unidentified Source";
 var isDebug = false;
 
-console.log(MODULE_ID, "|", MODULE_ID, "is loaded.");
+console.log(LOG_PREFIX, MODULE_ID, "is loaded.");
 
 Hooks.on("clientSettingChanged", (settingKey, newValue) => {
   if (settingKey === MODULE_ID+".isDebug") {
-    console.log(MODULE_ID, "|", `"isDebug" setting changed to: ${newValue}`);
+    console.log(LOG_PREFIX, `"isDebug" setting changed to: ${newValue}`);
 
     isDebug = newValue;
   }
@@ -14,11 +15,11 @@ Hooks.on("clientSettingChanged", (settingKey, newValue) => {
 
 
 Hooks.on("createChatMessage", (message, data, options, userId) => {
-  if (isDebug) console.log(MODULE_ID, "|", "createChatMessage call detected");
+  if (isDebug) console.log(LOG_PREFIX, "createChatMessage call detected");
 
   if (!message?.constructor?.name || message.constructor.name !== "ChatMessagePF2e") return;
   
-  if (isDebug) console.log(MODULE_ID, "|", "ChatMessagePF2e call detected");
+  if (isDebug) console.log(LOG_PREFIX, "ChatMessagePF2e call detected");
 
   //Get actual damage being applied
   if (message.flags.pf2e.context?.type === "damage-taken") {
@@ -48,13 +49,13 @@ Hooks.on("createChatMessage", (message, data, options, userId) => {
       }
       
       if (isDebug) {
-        console.log(MODULE_ID, "|", "Damage Taken!");
-        console.log(MODULE_ID, "|", "damage Amount: \t", damageRoll);
-        console.log(MODULE_ID, "|", "damage: \t", damage);
-        console.log(MODULE_ID, "|", "attacker: \t", attacker);
-        console.log(MODULE_ID, "|", "attacker is NPC?:", isNPC)
-        console.log(MODULE_ID, "|", "victim: \t", victim);
-        console.log(MODULE_ID, "|", "track NPCs?", isNPCLoggingEnabled);
+        console.log(LOG_PREFIX, "Damage Taken!");
+        console.log(LOG_PREFIX, "damage Amount: \t", damageRoll);
+        console.log(LOG_PREFIX, "damage: \t", damage);
+        console.log(LOG_PREFIX, "attacker: \t", attacker);
+        console.log(LOG_PREFIX, "attacker is NPC?:", isNPC)
+        console.log(LOG_PREFIX, "victim: \t", victim);
+        console.log(LOG_PREFIX, "track NPCs?", isNPCLoggingEnabled);
       }
 
       AddOrMergeActor(attackerId, attacker, isNPC, damageRoll, damage);
@@ -81,11 +82,11 @@ Hooks.on("createChatMessage", (message, data, options, userId) => {
       });
             
       if (isDebug) {
-        console.log(MODULE_ID, "|", "Damage Taken!");
-        console.log(MODULE_ID, "|", "damage Amount: \t", damageRoll);
-        console.log(MODULE_ID, "|", "attacker: \t", attacker);
-        console.log(MODULE_ID, "|", "attacker is NPC?:", isNPC)
-        console.log(MODULE_ID, "|", "track NPCs?", isNPCLoggingEnabled);
+        console.log(LOG_PREFIX, "Damage Taken!");
+        console.log(LOG_PREFIX, "damage Amount: \t", damageRoll);
+        console.log(LOG_PREFIX, "attacker: \t", attacker);
+        console.log(LOG_PREFIX, "attacker is NPC?:", isNPC)
+        console.log(LOG_PREFIX, "track NPCs?", isNPCLoggingEnabled);
       }
 
       StashDamageRoll(attackerId, attacker, isNPC, damageRoll);
@@ -95,11 +96,11 @@ Hooks.on("createChatMessage", (message, data, options, userId) => {
 
 //Listen for damage "reverts" and clear that data
 Hooks.on("updateChatMessage", (message, data, options, userId) => {
-  if (isDebug) console.log(MODULE_ID, "|", "UpdateChatMessage call detected");
+  if (isDebug) console.log(LOG_PREFIX, "UpdateChatMessage call detected");
 
   if (!message?.constructor?.name || message.constructor.name !== "ChatMessagePF2e") return;
     
-  if (isDebug) console.log(MODULE_ID, "|", "ChatMessagePF2e call detected");
+  if (isDebug) console.log(LOG_PREFIX, "ChatMessagePF2e call detected");
 
   if (message.flags.pf2e.context?.type === "damage-taken") {
       
@@ -107,7 +108,7 @@ Hooks.on("updateChatMessage", (message, data, options, userId) => {
 
     if (data.flags.pf2e.appliedDamage.isReverted)
     {
-      if (isDebug) console.log(MODULE_ID, "|", "Revert damage found");
+      if (isDebug) console.log(LOG_PREFIX, "Revert damage found");
 
       let attackerId =  message.flags.pf2e.origin?.actor;
       const attackActor = (attackerId)?fromUuidSync(attackerId):null;
@@ -132,8 +133,8 @@ Hooks.on("updateChatMessage", (message, data, options, userId) => {
       damageRoll = parseInt(dmgMatch[1],10);
         
       if (isDebug) {
-        console.log(MODULE_ID, "|", "Damage Reverted!");
-        console.log(MODULE_ID, "|", "damage: \t", damage);
+        console.log(LOG_PREFIX, "Damage Reverted!");
+        console.log(LOG_PREFIX, "damage: \t", damage);
       }
 
       RevertDamage(attackerId, damageRoll, damage);
@@ -151,13 +152,13 @@ async function StashDamageRoll(key, name, isNPC, damageRoll) {
     actorMap[key].maxDmgRoll = damageRoll;
     actorMap[key].prevMaxDmgRoll = 0;
 
-    if (isDebug) console.log(MODULE_ID, "|", "Created new", (isNPC)?"NPC":"PC", "for:", name, "with", damageRoll, "damage.");
+    if (isDebug) console.log(LOG_PREFIX, "Created new", (isNPC)?"NPC":"PC", "for:", name, "with", damageRoll, "damage.");
   }
   else {
     const existing = actorMap[key];
     checkAndUpdateMaxDmgRoll(existing,damageRoll);
    
-    if (isDebug) console.log(MODULE_ID, "|", "Merged data into existing", (isNPC)?"NPC":"PC", "for:", existing.name, "with", damageRoll, "damage.");
+    if (isDebug) console.log(LOG_PREFIX, "Merged data into existing", (isNPC)?"NPC":"PC", "for:", existing.name, "with", damageRoll, "damage.");
   }
 
   await game.settings.set(MODULE_ID, "damageMap", actorMap);
@@ -207,7 +208,7 @@ async function AddOrMergeActor(key, name, isNPC, damageRoll, damage) {
 
     const Actortype = (isNPC)?"NPC":"PC";
     
-    if (isDebug) console.log(MODULE_ID, "|", "Created new", (isNPC)?"NPC":"PC", "for:", name, "with", damage, "damage.");
+    if (isDebug) console.log(LOG_PREFIX, "Created new", (isNPC)?"NPC":"PC", "for:", name, "with", damage, "damage.");
   } 
   else {    //actor already exists, update
     const actor = actorMap[key];
@@ -222,7 +223,7 @@ async function AddOrMergeActor(key, name, isNPC, damageRoll, damage) {
 
     actor.totDmg = (actor.totDmg)?actor.totDmg + damage:damage;
     
-    if (isDebug) console.log(MODULE_ID, "|", "Merged data into existing", (isNPC)?"NPC":"PC", "for:", actor.name, "with", damage, "damage.");
+    if (isDebug) console.log(LOG_PREFIX, "Merged data into existing", (isNPC)?"NPC":"PC", "for:", actor.name, "with", damage, "damage.");
   }
   await game.settings.set(MODULE_ID, "damageMap", actorMap);
 }
@@ -231,7 +232,7 @@ async function RevertDamage(key, damageRoll, damage) {
   const actorMap = game.settings.get(MODULE_ID, "damageMap") ?? {};
     
   if (!actorMap[key]) {  
-    if (isDebug) console.log(MODULE_ID, "|", "Actor is not in the table to revert damage from");
+    if (isDebug) console.log(LOG_PREFIX, "Actor is not in the table to revert damage from");
   } 
   else {    //actor already exists, update
     const actor = actorMap[key];
@@ -250,7 +251,7 @@ async function RevertDamage(key, damageRoll, damage) {
 
     actor.totDmg += -damage;
 
-    if (isDebug) console.log(MODULE_ID, "|", "Reverted damage from existing", (actor.isNPC)?"NPC":"PC", "for:", actor.name, "with", damage, "damage.");
+    if (isDebug) console.log(LOG_PREFIX, "Reverted damage from existing", (actor.isNPC)?"NPC":"PC", "for:", actor.name, "with", damage, "damage.");
   
     await game.settings.set(MODULE_ID, "damageMap", actorMap);
   }
