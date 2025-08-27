@@ -33,8 +33,9 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
       html.querySelector(".clear-tracking-button")?.addEventListener("click", this.#onClearTrackingClick.bind(this));
       html.querySelector(".clear-NPCs-button")?.addEventListener("click", this.#onClearNPCsClick.bind(this));
       html.querySelector(".export-damage-map")?.addEventListener("click", this.#onExportDamapgeMapClick.bind(this));
-
-      // Start refresh loop
+    
+      // Start refresh loop - only set when listeners are initially bound 
+      // i.e. don't check this every render
       if (!this._pollInterval) {
         this._pollInterval = setInterval(() => {
           if (this.rendered) this.refreshContent();
