@@ -26,7 +26,7 @@ Hooks.on("createChatMessage", (message, data, options, userId) => {
     const isNPCLoggingEnabled =  game.settings.get(MODULE_ID, "enableNPCTracking");
     let attackerId =  message.flags.pf2e.origin?.actor;
     const attackActor = (attackerId)?fromUuidSync(attackerId):null;
-    const attacker =    (attackActor)?attackActor.name:UNIDENTIFIED_ATTACKER;
+    const attacker =    (attackActor)?attackActor.name:UNIDENTIFIED_ATTACKER;       //Probably should use token.name here for NPCs (to get decorated names) - should I lose attackerId (I don't use it to render)
     let isNPC =       (attackActor?.type !== "character");
 
     if (!attackerId) {  //invalid attackerId usually indicates manually applied damage (or unarmed strikes)
@@ -67,7 +67,7 @@ Hooks.on("createChatMessage", (message, data, options, userId) => {
     const isNPCLoggingEnabled =  game.settings.get(MODULE_ID, "enableNPCTracking");
     let attackerId =  message.flags.pf2e.origin?.actor;
     const attackActor = (attackerId)?fromUuidSync(attackerId):null;
-    const attacker =    (attackActor)?attackActor.name:UNIDENTIFIED_ATTACKER;
+    const attacker =    (attackActor)?attackActor.name:UNIDENTIFIED_ATTACKER;   //Probably should use token.name here for NPCs (to get decorated names).
     let isNPC =       (attackActor?.type !== "character");
 
     if (!attackerId) {  //invalid attackerId usually indicates manually applied damage (or unarmed strikes)
