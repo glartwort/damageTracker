@@ -9,14 +9,19 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
     form: {
       handler: DamageTrackerSettings.onSubmitForm,
       closeOnSubmit: true
-    }
+    },
   };
 
   static PARTS = {
     topButtons: {template: `modules/${MODULE_ID}/templates/partials/topButtons.hbs`},
     content: {template: `modules/${MODULE_ID}/templates/partials/tableContent.hbs`},
+    PCgrouping: {template: `modules/${MODULE_ID}/templates/partials/PCgrouping.hbs`},
     exportButton: {template: `modules/${MODULE_ID}/templates/partials/exportButton.hbs`},
   }
+
+  sortKey = "totDmg";   //writeable properties so the user can change them
+  isSortAsc = false;    //writeable properties so the user can change them
+  isGroupPCs = false;
 
   get document() {
     return this.options.document;
@@ -32,11 +37,15 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
     if(!this._listenersBound) {
       html.querySelector(".clear-tracking-button")?.addEventListener("click", this.#onClearTrackingClick.bind(this));
       html.querySelector(".clear-NPCs-button")?.addEventListener("click", this.#onClearNPCsClick.bind(this));
-      html.querySelector(".export-damage-map")?.addEventListener("click", this.#onExportDamapgeMapClick.bind(this));
-    
+      html.querySelector(".export-damage-map")?.addEventListener("click", this.#onExportDamageMapClick.bind(this));
+      html.querySelector(".group-PCs")?.addEventListener("click", this.#onGroupPCsClick.bind(this));
+
+      this.#registerContentEventHandlers();
+
       // Start refresh loop - only set when listeners are initially bound 
       // i.e. don't check this every render
       if (!this._pollInterval) {
+        this.refreshContent();
         this._pollInterval = setInterval(() => {
           if (this.rendered) this.refreshContent();
         }, 3000); // 3 seconds
@@ -46,7 +55,31 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
 
   _getSortedActorData() {
     const dmgMap = game.settings.get(MODULE_ID, "damageMap");
-    return Object.values(dmgMap).sort((a, b) => b.totDmg - a.totDmg);
+    
+    const key = this.sortKey;
+    const asc = this.isSortAsc;
+    
+    const sortedActors = Object.values(dmgMap).sort((a, b) => {
+      let aVal = a[key];
+      let bVal = b[key];
+
+      if (aVal == null) aVal = "";
+      if (bVal == null) bVal = "";
+
+      if ((typeof aVal === "number")&& (typeof bVal === "number")) {   //numeric sort
+        return asc?aVal-bVal:bVal-aVal;
+      }
+      
+      aVal = String(aVal).toLowerCase();
+      bVal = String(bVal).toLowerCase();
+
+      return asc?aVal.localeCompare(bVal):bVal.localeCompare(aVal);
+    });
+
+    if (this.isGroupPCs)
+      return [...sortedActors.filter(a => !a.isNPC), ...sortedActors.filter(a => a.isNPC)];
+    else
+      return sortedActors;
   }
 
   async _prepareContext(options) {
@@ -59,9 +92,9 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     return {
-      formData: {
-        actors: sortedActors
-      }
+      actors: sortedActors,
+      sortKey: this.sortKey,
+      isSortAsc: this.isSortAsc
     };  
   }
 
@@ -71,11 +104,7 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
         Object.entries(settings)
             .map(([key, value]) => game.settings.set(MODULE_ID, key, value))
     );
-
-  //  await this.document.update(formData.object);
-  
-}
-  
+  }
   
   //Click Handlers
    //TODO: Should I add buttons for each "heading" to allow for Sorting by listening to each button and refreshing?
@@ -94,7 +123,7 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
       ui.notifications.info("Damage tracking data has been cleared.");
 
       //refresh Settings page since data changed.
-      this.render(true);
+      this.refreshContent();
     }
   }
 
@@ -130,14 +159,14 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
       ui.notifications.info("Damage tracking data for NPCs has been cleared.");
 
       //refresh Settings page since data changed.
-      this.render(true);
+      this.refreshContent();
     }  
   }
   
- #onExportDamapgeMapClick(event) {
+ #onExportDamageMapClick(event) {
     var exportData = "Actor Name, isNPC, Max Damage Roll, Max Damage, Total Damage\n";
     const dmgMap = game.settings.get(MODULE_ID,"damageMap");
-    const sortedActors = Object.values(dmgMap).sort((a,b) => b.totDmg - a.totDmg);
+    const sortedActors = this._getSortedActorData();
 
     sortedActors.forEach(actor => {
       exportData += `${actor.name}, ${actor.isNPC}, ${actor.maxDmgRoll}, ${actor.maxDmg}, ${actor.totDmg}\n`;
@@ -163,20 +192,47 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
     expDialog.render(true);
   }
 
+  #onGroupPCsClick(event) {
+    this.isGroupPCs = !this.isGroupPCs;
+    this.refreshContent();
+  }
+
+  #onSortableClick(event) { 
+    console.log(event);
+
+    const key = event.currentTarget.dataset.key;
+  
+    if (this.sortKey === key) {
+      this.isSortAsc = !this.isSortAsc; // toggle direction
+    } else {
+      this.sortKey = key;
+      this.isSortAsc = (key === "name")?true:false; // default to ascending for name, descending for everything else
+    }
+
+    this.refreshContent();
+  }
+
+  #registerContentEventHandlers() {
+    this.element?.querySelectorAll(".sortable").forEach( el => {
+      const key = el.dataset.key;
+
+      if (!key) return;
+
+      el.addEventListener("click", this.#onSortableClick.bind(this));
+    });
+  }
+
   async refreshContent() {
     const container = this.element?.querySelector(".damageTable");  //top element of tableContent.hbs
     if (!container) return;
 
-    // Prepare fresh data
-    const formData = {
-      actors: this._getSortedActorData() 
-    };
-
     // Render the partial template
-    const newHTML = await renderTemplate(DamageTrackerSettings.PARTS.content.template, { formData });
-
+    const newHTML = await renderTemplate(DamageTrackerSettings.PARTS.content.template, { actors: this._getSortedActorData(), sortKey: this.sortKey, isSortAsc: this.isSortAsc });
+    
     // Replace the content
      container.innerHTML = newHTML;
+
+    this.#registerContentEventHandlers();
   }
 
   close() {

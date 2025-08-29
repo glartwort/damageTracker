@@ -59,13 +59,6 @@ Hooks.once("init", async() => {
     default: {}
   });
 
-  await loadTemplates([
-    `modules/${MODULE_ID}/templates/partials/topButtons.hbs`,
-    `modules/${MODULE_ID}/templates/partials/tableContent.hbs`,
-    `modules/${MODULE_ID}/templates/partials/exportButton.hbs`
-  ]);
-
-  
   isDebug = game.settings.get(MODULE_ID, "isDebug");
 
   if (isDebug) console.log(LOG_PREFIX, "settings registered.");
