@@ -12,14 +12,16 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
     },
   };
 
-  sortKey = "totDmg";
-  isSortAsc = false;
-
   static PARTS = {
     topButtons: {template: `modules/${MODULE_ID}/templates/partials/topButtons.hbs`},
     content: {template: `modules/${MODULE_ID}/templates/partials/tableContent.hbs`},
+    PCgrouping: {template: `modules/${MODULE_ID}/templates/partials/PCgrouping.hbs`},
     exportButton: {template: `modules/${MODULE_ID}/templates/partials/exportButton.hbs`},
   }
+
+  sortKey = "totDmg";   //writeable properties so the user can change them
+  isSortAsc = false;    //writeable properties so the user can change them
+  isGroupPCs = false;
 
   get document() {
     return this.options.document;
@@ -36,6 +38,7 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
       html.querySelector(".clear-tracking-button")?.addEventListener("click", this.#onClearTrackingClick.bind(this));
       html.querySelector(".clear-NPCs-button")?.addEventListener("click", this.#onClearNPCsClick.bind(this));
       html.querySelector(".export-damage-map")?.addEventListener("click", this.#onExportDamageMapClick.bind(this));
+      html.querySelector(".group-PCs")?.addEventListener("click", this.#onGroupPCsClick.bind(this));
 
       this.#registerContentEventHandlers();
 
@@ -72,7 +75,11 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
 
       return asc?aVal.localeCompare(bVal):bVal.localeCompare(aVal);
     });
-    return sortedActors;
+
+    if (this.isGroupPCs)
+      return [...sortedActors.filter(a => !a.isNPC), ...sortedActors.filter(a => a.isNPC)];
+    else
+      return sortedActors;
   }
 
   async _prepareContext(options) {
@@ -159,7 +166,7 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
  #onExportDamageMapClick(event) {
     var exportData = "Actor Name, isNPC, Max Damage Roll, Max Damage, Total Damage\n";
     const dmgMap = game.settings.get(MODULE_ID,"damageMap");
-    const sortedActors = Object.values(dmgMap).sort((a,b) => b.totDmg - a.totDmg);
+    const sortedActors = this._getSortedActorData();
 
     sortedActors.forEach(actor => {
       exportData += `${actor.name}, ${actor.isNPC}, ${actor.maxDmgRoll}, ${actor.maxDmg}, ${actor.totDmg}\n`;
@@ -183,6 +190,11 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     
     expDialog.render(true);
+  }
+
+  #onGroupPCsClick(event) {
+    this.isGroupPCs = !this.isGroupPCs;
+    this.refreshContent();
   }
 
   #onSortableClick(event) { 
@@ -216,7 +228,7 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // Render the partial template
     const newHTML = await renderTemplate(DamageTrackerSettings.PARTS.content.template, { actors: this._getSortedActorData(), sortKey: this.sortKey, isSortAsc: this.isSortAsc });
-
+    
     // Replace the content
      container.innerHTML = newHTML;
 
