@@ -18,13 +18,16 @@ Clicking on the [Details] button will bring up the primary UI for Damage Tracker
 The buttons do what you'd expect:
 - [Clear Tracking Data] will delete all tracking data.
 - [Clear NPC Tracking Data] will delete any NPC data.  
-- [Export Damage Data] will produce a copyable CSV doc. 
+- [Export Damage Data] will produce a copyable CSV doc that matches the order in the view.
+- Each heading in the table can be selected to sort by that column (click again to reverse sort order).
+- The 'Move PCs to the top of the list' does exactly that.  It groups all Player Characters at the top of the list.
 
 # Terminology
 Description of the different columns:
   - Max Roll = The maximum damage amount the creature/actor rolled (or did).
   - Max Hit  = The maximum damage done, could be smaller than the Max Roll if the creature didn't have that many hitpoints, had resistance, made a save, etc.
   - Total Damage = The cumulative damage done (while the log has been collecting).
+  - Biggest Hit Taken = The maximum amount of damage that creature has taken.
 
 # Usage Details
 There are a couple ways you can use this module, both are basically for vanity/bragging rights for your players (or you if you're a malicious sort of GM).
@@ -35,7 +38,7 @@ There are a couple ways you can use this module, both are basically for vanity/b
       - Most Lethal:    (Enemy who did the most cumulative damage)
       - Most Fearsome:  (Highest CR enemy)
       
-      This module doesn't deal with CRs or who is the biggest hittee (though the last one might be something I do at some point).
+      This module doesn't deal with CRs, but you can quickly determine the answer to the other 3.
 
       Using these you could build a "Player Home" screen.
   
@@ -55,7 +58,8 @@ There are a couple ways you can use this module, both are basically for vanity/b
   Damage reverting will cancel the whole damage.
   - Subtract from Total Damage.
   - Set your Max Roll and Max Hit to the previous max for either (if the reverted damage was a max for either/both).
-  - Note: Damage Tracker only keeps one "previous max".  If you revert two maxes without setting a new one, the max will reset to 0.
+  - Damage Tracker only keeps one "previous max".  If you revert two maxes without setting a new one, the max will reset to 0.
+  - Note that there are cases where you Max Roll won't be found on a revert (ex: if the target had resistance, reverting the damage will leave your old 'higher' roll).
 
 
 

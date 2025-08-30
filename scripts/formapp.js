@@ -169,7 +169,7 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
     const sortedActors = this._getSortedActorData();
 
     sortedActors.forEach(actor => {
-      exportData += `${actor.name}, ${actor.isNPC}, ${actor.maxDmgRoll}, ${actor.maxDmg}, ${actor.totDmg}\n`;
+      exportData += `${actor.name}, ${actor.isNPC}, ${actor.maxDmgRoll}, ${actor.maxDmg}, ${actor.totDmg}, ${actor.mostDmgTaken}\n`;
     });
 
     const expDialog = new foundry.applications.api.DialogV2({
@@ -198,8 +198,6 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   #onSortableClick(event) { 
-    console.log(event);
-
     const key = event.currentTarget.dataset.key;
   
     if (this.sortKey === key) {
