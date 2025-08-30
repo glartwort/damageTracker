@@ -22,6 +22,11 @@
             {{#if isSortAsc}}↑{{else}}↓{{/if}}
           {{/if}}
         </th>
+        <th class="sortable" data-key="mostDmgTaken" style="border-bottom: 1px solid #ccc; text-align: center;">Biggest Hit Taken 
+          {{#if (eq sortKey "mostDmgTaken")}}
+            {{#if isSortAsc}}↑{{else}}↓{{/if}}
+          {{/if}}
+        </th>
       </tr>
     </thead>
     <tbody>
@@ -34,10 +39,11 @@
             <td style="text-align: center;">{{this.maxDmgRoll}}</td>
             <td style="text-align: center;">{{this.maxDmg}}</td>
             <td style="text-align: center;">{{this.totDmg}}</td>
+            <td style="text-align: center;">{{this.mostDmgTaken}}</td>
           </tr>
         {{/each}}
       {{else}}
-        <tr><td colspan="5" style="text-align: center;"><strong><i>There is no tracking data saved.</i></strong></td></tr>
+        <tr><td colspan="6" style="text-align: center;"><strong><i>There is no tracking data saved.</i></strong></td></tr>
       {{/if}}
     </tbody>
   </table>
