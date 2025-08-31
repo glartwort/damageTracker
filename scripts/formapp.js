@@ -2,6 +2,15 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api
 
 //new v2 version
 class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
+  constructor(options = {}) {
+    super(options);
+
+    if (game.user.isGM) {
+      DamageTrackerSettings.PARTS.topButtons.template =
+        'modules/damage-tracker/templates/partials/topButtons.hbs';
+    }
+  }
+
   static DEFAULT_OPTIONS = {
     tag: 'form',
     position: {width: 500, height: 'auto'},
@@ -13,7 +22,7 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
   };
 
   static PARTS = {
-    topButtons: {template: `modules/${MODULE_ID}/templates/partials/topButtons.hbs`},
+    topButtons: {template: `modules/${MODULE_ID}/templates/partials/blank.hbs`},
     content: {template: `modules/${MODULE_ID}/templates/partials/tableContent.hbs`},
     PCgrouping: {template: `modules/${MODULE_ID}/templates/partials/PCgrouping.hbs`},
     exportButton: {template: `modules/${MODULE_ID}/templates/partials/exportButton.hbs`},
@@ -21,7 +30,7 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
 
   sortKey = "totDmg";   //writeable properties so the user can change them
   isSortAsc = false;    //writeable properties so the user can change them
-  isGroupPCs = false;
+  isGroupPCs = false;   //writeable properties so the user can change them
 
   get document() {
     return this.options.document;
@@ -89,7 +98,7 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
     if (isDebug) {
       console.log(LOG_PREFIX, "DamageTracker Actor list: ");
       console.log(LOG_PREFIX, sortedActors);
-    }
+    }   
 
     return {
       actors: sortedActors,
