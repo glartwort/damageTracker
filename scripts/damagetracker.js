@@ -99,10 +99,12 @@ function ProcessDamageTaken(message,data) {
       console.log(LOG_PREFIX, "track NPCs?", isNPCLoggingEnabled);
     }
 
-    AddOrMergeActor(attackerId, attacker, isNPC, damageRoll, damage);
-
+     AddOrMergeActor(attackerId, attacker, isNPC, damageRoll, damage);
+     
     if ((!targetIsNPC) || (isNPCLoggingEnabled)) {
-      AddorMergeActorMostDmgTaken(targetId, target, targetIsNPC, damage);
+      if (damage>0) {
+        AddorMergeActorMostDmgTaken(targetId, target, targetIsNPC, damage);
+      }
     }
   }
 }
@@ -168,10 +170,7 @@ function ProcessDamageRevert(message,data) {
   let damageRoll = 0;
   const dmgMatch = damageString.match(damageRegex);
 
-  if (!dmgMatch) 
-      return;
-    
-  damageRoll = parseInt(dmgMatch[1],10);
+  damageRoll = (dmgMatch)?parseInt(dmgMatch[1],10):0;
     
   if (isDebug) {
     console.log(LOG_PREFIX, "Damage Reverted!");
@@ -274,23 +273,32 @@ async function AddOrMergeActor(key, name, isNPC, damageRoll, damage) {
     actorMap[key] = {};
     actorMap[key].name = name;
     actorMap[key].isNPC = isNPC;
-    actorMap[key].maxDmgRoll = damageRoll;
-    actorMap[key].prevMaxDmgRoll = 0;
-    actorMap[key].maxDmg = damage;
-    actorMap[key].prevMaxDmg = 0;
-    actorMap[key].totDmg = damage;
+
+    if (damage>0) {
+      actorMap[key].maxDmgRoll = damageRoll;
+      actorMap[key].prevMaxDmgRoll = 0;
+      actorMap[key].maxDmg = damage;
+      actorMap[key].prevMaxDmg = 0;
+    }
+    actorMap[key].totDmg = (damage>0)?damage:0;
+    actorMap[key].totHeal = (damage>0)?0:-damage;
   
     if (isDebug) console.log(LOG_PREFIX, "Created new", (isNPC)?"NPC":"PC", "for:", name, "with", damage, "damage.");
 
   } else {    //actor already exists, update
     const actor = actorMap[key];
-    let absMaxDmg = Math.max(damageRoll,damage);  //if damage is > damageRoll, use that.. 
+    if (damage < 0) { //healing
+      actor.totHeal = (actor.totHeal)?actor.totHeal - damage:-damage;   //healing damage is negative.. subtract the negative from total or set total to -(damage).
+    }
+    else {
+      let absMaxDmg = Math.max(damageRoll,damage);  //if damage is > damageRoll, use that.. 
 
-    checkAndUpdateMaxDmgRoll(actor,absMaxDmg);
-    checkAndUpdateMaxDmg(actor,damage);
+      checkAndUpdateMaxDmgRoll(actor,absMaxDmg);
+      checkAndUpdateMaxDmg(actor,damage);
+  
+      actor.totDmg = (actor.totDmg)?actor.totDmg + damage:damage;
+    }
 
-    actor.totDmg = (actor.totDmg)?actor.totDmg + damage:damage;
-    
     if (isDebug) console.log(LOG_PREFIX, "Merged data into existing", (isNPC)?"NPC":"PC", "for:", actor.name, "with", damage, "damage.");
   }
   await game.settings.set(MODULE_ID, "damageMap", actorMap);
@@ -342,7 +350,12 @@ async function RevertDamage(key, damageRoll, damage) {
       actor.prevMaxDmg = 0;     //don't save the current or it could never revert that roll.  Shouldn't happen, but just in case.
     }
 
-    actor.totDmg += -damage;
+    if (damage < 0) { //healing
+      actor.totHeal += damage;   //add the negative damage to "subtract it" from totHeal
+    }
+    else {
+      actor.totDmg += -damage;
+    }
 
     if (isDebug) console.log(LOG_PREFIX, "Reverted damage from existing", (actor.isNPC)?"NPC":"PC", "for:", actor.name, "with", damage, "damage.");
   

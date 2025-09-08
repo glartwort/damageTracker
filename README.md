@@ -27,6 +27,7 @@ Description of the different columns:
   - Max Roll = The maximum damage amount the creature/actor rolled (or did).
   - Max Hit  = The maximum damage done, could be smaller than the Max Roll if the creature didn't have that many hitpoints, had resistance, made a save, etc.
   - Total Damage = The cumulative damage done (while the log has been collecting).
+  - Total Healing = The cumulative amount of healling (negative damage) done.
   - Biggest Hit Taken = The maximum amount of damage that creature has taken.
 
 # Usage Details
@@ -53,10 +54,11 @@ There are a couple ways you can use this module, both are basically for vanity/b
   Max Roll tries to get the BIGGEST damage ever done or conceivably done.  For example:
   - If you did 34 points of damage to something with 5 hp, Max Roll will record 34 (while damage Total Damage will go up by 5).
   - Similarly, if you cast a fireball and did 30 hp damage, but someone critically failed their save - Max Roll will record 60 (Total will go up by at least 60 as well).
+  - It also catches you maximum roll for healing (which could be damage). 
   - Same story for vulnerabilities, resistances, etc.  You might roll 15 hp of damage but do 25 damage (which could be a new max) or 5 damage (but record 15 as a max if that's your largest roll so far).
 
   Damage reverting will cancel the whole damage.
-  - Subtract from Total Damage.
+  - Subtract from Total Damage (or Total Healing depending on what you're reverting).
   - Set your Max Roll and Max Hit to the previous max for either (if the reverted damage was a max for either/both).
   - Damage Tracker only keeps one "previous max".  If you revert two maxes without setting a new one, the max will reset to 0.
   - Note that there are cases where you Max Roll won't be found on a revert (ex: if the target had resistance, reverting the damage will leave your old 'higher' roll).
