@@ -116,7 +116,6 @@ class DamageTrackerSettings extends HandlebarsApplicationMixin(ApplicationV2) {
   }
   
   //Click Handlers
-   //TODO: Should I add buttons for each "heading" to allow for Sorting by listening to each button and refreshing?
   async #onClearTrackingClick(event) {
     event.preventDefault();
     

@@ -22,6 +22,11 @@
             {{#if isSortAsc}}↑{{else}}↓{{/if}}
           {{/if}}
         </th>
+        <th class="sortable" data-key="totHeal" style="border-bottom: 1px solid #ccc; text-align: center;">Total Healing  
+          {{#if (eq sortKey "totHeal")}}
+            {{#if isSortAsc}}↑{{else}}↓{{/if}}
+          {{/if}}
+        </th>
         <th class="sortable" data-key="mostDmgTaken" style="border-bottom: 1px solid #ccc; text-align: center;">Biggest Hit Taken 
           {{#if (eq sortKey "mostDmgTaken")}}
             {{#if isSortAsc}}↑{{else}}↓{{/if}}
@@ -39,6 +44,7 @@
             <td style="text-align: center;">{{this.maxDmgRoll}}</td>
             <td style="text-align: center;">{{this.maxDmg}}</td>
             <td style="text-align: center;">{{this.totDmg}}</td>
+            <td style="text-align: center;">{{this.totHeal}}</td>
             <td style="text-align: center;">{{this.mostDmgTaken}}</td>
           </tr>
         {{/each}}
